@@ -281,7 +281,7 @@ const SIGNS = {
   board: ['Notice board', ['A fresh copy of my resume is pinned here.', 'Opening it now…'], 'resume'],
   nss: ['Beach sign', ['NSS CLEAN-UP CREW. As an NSS board member I helped run beach clean-ups like this one, plus donation drives and visits to old-age homes, schools and cancer centres.']],
   car: ['Tiny race car', ['Vroom. My Spark MLlib model predicts the next lap time within 0.535 s on average.']],
-  cow: ['Sir Mooington', null]
+  cow: ['Moona Lisa', null]
 };
 const COW_LINES = [
   'Moo. The lab compound up north is where the live stuff lives. 2K+ people a day use the FAQ portal.',
@@ -418,7 +418,7 @@ function icon(c, name, ox, oy, col, s = 1) {
 
 /* ============================================================ state */
 const player = { x: 17, y: 17, px: 17 * T, py: 17 * T, dir: 'down', flip: false, moving: false, fx: 0, fy: 0, t: 0, steps: 0, path: [], then: null };
-const cow = add({ t: 'cow', x: 25, y: 22, w: 1, h: 1, act: 'TALK', sign: 'cow', name: 'Sir Mooington', px: 25 * T, py: 22 * T, fx: 0, fy: 0, mt: 1, flip: false, wait: 2 });
+const cow = add({ t: 'cow', x: 25, y: 22, w: 1, h: 1, act: 'TALK', sign: 'cow', name: 'Moona Lisa', px: 25 * T, py: 22 * T, fx: 0, fy: 0, mt: 1, flip: false, wait: 2 });
 const S = { night: false, labels: true, dialog: null, page: null, busy: false, held: [] };
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const h0 = new Date().getHours(); S.night = h0 >= 19 || h0 < 6;
