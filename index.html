@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Oggy Town · Sai Akshay Oggisetty</title>
+<meta name="description" content="Sai Akshay Oggisetty's portfolio: a small pixel town where every house is a project. LLMs, search and backend work.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%2317142b'/%3E%3Cpath d='M3 8h10v6H3z' fill='%23fbf3e4'/%3E%3Cpath d='M2 8l6-5 6 5z' fill='%23ff8a4c'/%3E%3Cpath d='M7 10h2v4H7z' fill='%2317142b'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&family=DM+Sans:opsz,wght@9..40,400;9..40,600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#17142b; --ink:#efe8ff; --dim:#a59cc8; --frame:#2c2650; --edge:#0d0b1c; --sun:#ff8a4c; --gold:#ffcc4d; --paper:#fbf3e4; --pink:#2a2238; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 "DM Sans", system-ui, sans-serif; }
+  body { background-image: radial-gradient(#ffffff14 1px, transparent 1px); background-size: 22px 22px; }
+  a { color: inherit; }
+  .px { font-family: "Pixelify Sans", monospace; letter-spacing: .02em; }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 18px 16px 40px; }
+
+  header.top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+  .badge { width: 46px; height: 46px; display: grid; place-items: center; background: var(--sun); color: var(--edge); font: 600 20px "Pixelify Sans"; box-shadow: 3px 3px 0 var(--edge); }
+  .who h1 { margin: 0; font: 600 22px/1.1 "Pixelify Sans"; }
+  .who p { margin: 2px 0 0; color: var(--dim); font-size: 13.5px; }
+  .tools { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn { font: 14px "Pixelify Sans"; color: var(--ink); background: var(--frame); border: 2px solid var(--edge); padding: 6px 11px; cursor: pointer; box-shadow: 3px 3px 0 var(--edge); text-decoration: none; }
+  .btn:hover { background: #3a3266; }
+  .btn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--edge); }
+  .btn.hot { background: var(--sun); color: var(--edge); }
+
+  .frame { background: var(--frame); border: 3px solid var(--edge); box-shadow: 6px 6px 0 var(--edge); padding: 0 10px 10px; }
+  .hud { display: flex; justify-content: space-between; font: 13px "Pixelify Sans"; color: var(--dim); padding: 7px 2px; }
+  .hud b { color: var(--gold); font-weight: 400; }
+  .stage { position: relative; aspect-ratio: 48 / 30; background: #000; border: 2px solid var(--edge); overflow: hidden; }
+  .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; display: block; outline: none; }
+  #wipe { pointer-events: none; }
+  #labels { position: absolute; inset: 0; pointer-events: none; }
+  #labels span { position: absolute; transform: translate(-50%, -100%); font: 11px "Pixelify Sans"; background: #17142bcc; color: #fff; padding: 0 5px; white-space: nowrap; }
+  #labels.off { display: none; }
+  #prompt { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: var(--gold); color: var(--edge); font: 15px "Pixelify Sans"; padding: 4px 12px; border: 2px solid var(--edge); box-shadow: 3px 3px 0 var(--edge); cursor: pointer; animation: bob 1s ease-in-out infinite; z-index: 3; }
+  @keyframes bob { 50% { transform: translate(-50%, -2px); } }
+  #hint { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); font: 13px "Pixelify Sans"; background: #17142bd9; padding: 3px 10px; white-space: nowrap; }
+  #dialog { position: absolute; left: 4%; right: 4%; bottom: 5%; background: var(--paper); color: var(--pink); border: 3px solid var(--edge); box-shadow: inset 0 0 0 3px #d9c9a8; padding: 12px 16px 14px; font: 17px/1.35 "Pixelify Sans"; z-index: 4; cursor: pointer; min-height: 70px; }
+  #dialog .who { color: #b4532a; font-size: 14px; }
+  #dialog .more { position: absolute; right: 12px; bottom: 6px; animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  #panel { position: absolute; inset: 0; background: var(--paper); color: var(--pink); overflow-y: auto; z-index: 5; }
+  .ph { background: var(--c, #ff8a4c); color: #fff; padding: 14px 22px 16px; border-bottom: 3px solid var(--edge); }
+  .ph .back { margin-bottom: 10px; background: #17142b; color: #fff; }
+  .ph .kick { font: 13px "Pixelify Sans"; opacity: .9; }
+  .ph h2 { margin: 2px 0 2px; font: 600 clamp(22px, 3.4vw, 32px)/1.1 "Pixelify Sans"; text-shadow: 2px 2px 0 #0003; }
+  .ph .tag { margin: 4px 0 0; font-size: 15.5px; max-width: 62ch; }
+  .pb { padding: 16px 22px 26px; display: grid; gap: 14px; max-width: 780px; }
+  .pb h3 { margin: 0 0 4px; font: 600 16px "Pixelify Sans"; color: #b4532a; }
+  .pb p { margin: 0; }
+  .pb ul { margin: 0; padding-left: 18px; }
+  .pb li { margin: 2px 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips span { font: 13px "Pixelify Sans"; background: #ece0c8; border: 2px solid #d4c29f; padding: 1px 8px; }
+  .links { display: flex; flex-wrap: wrap; gap: 10px; }
+  .links a { font: 15px "Pixelify Sans"; background: var(--pink); color: #fff; text-decoration: none; padding: 6px 12px; box-shadow: 3px 3px 0 #0005; }
+  .links a:hover { background: #b4532a; }
+  .about { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
+  .about img { width: 120px; border: 3px solid var(--edge); box-shadow: 4px 4px 0 #0003; }
+  .about > div { flex: 1; min-width: 240px; }
+  table.edu { border-collapse: collapse; width: 100%; font-size: 14px; }
+  table.edu td { padding: 3px 8px 3px 0; border-bottom: 1px dashed #d4c29f; }
+
+  .pad { display: none; justify-content: space-between; align-items: center; margin-top: 10px; user-select: none; }
+  .dpad { display: grid; grid-template-columns: repeat(3, 46px); grid-template-rows: repeat(3, 46px); }
+  .pad button { font: 18px "Pixelify Sans"; background: #3a3266; color: #fff; border: 2px solid var(--edge); touch-action: none; }
+  .ab { display: flex; gap: 12px; }
+  .ab button { width: 58px; height: 58px; border-radius: 50%; }
+  .ab .a { background: var(--sun); color: var(--edge); }
+  @media (hover: none) and (pointer: coarse) { .pad { display: flex; } #hint { display: none; } }
+
+  h2.sec { font: 600 20px "Pixelify Sans"; margin: 30px 0 4px; }
+  p.sub { margin: 0 0 12px; color: var(--dim); }
+  .dir { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 10px; }
+  .dir a { display: flex; gap: 10px; align-items: center; background: var(--frame); border: 2px solid var(--edge); box-shadow: 3px 3px 0 var(--edge); padding: 8px 10px; text-decoration: none; }
+  .dir a:hover { background: #3a3266; }
+  .dir img { width: 28px; height: 28px; image-rendering: pixelated; flex: none; }
+  .dir b { display: block; font: 15px/1.15 "Pixelify Sans"; font-weight: 400; }
+  .dir small { color: var(--dim); font-size: 12.5px; }
+  footer { margin-top: 34px; color: var(--dim); font: 13px "Pixelify Sans"; text-align: center; }
+  @media (max-width: 640px) { .tools .btn.opt { display: none; } #labels span { font-size: 9px; } }
+  @media (prefers-reduced-motion: reduce) { #prompt, #dialog .more { animation: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="badge">SA</div>
+    <div class="who"><h1>Sai Akshay Oggisetty</h1><p>LLMs, search &amp; backends · B.Tech DSE, MIT Manipal</p></div>
+    <div class="tools">
+      <button class="btn opt" id="tLabels">Labels: on</button>
+      <button class="btn" id="tNight">☾ Night</button>
+      <a class="btn hot" href="resume.pdf" target="_blank" rel="noopener">Resume</a>
+    </div>
+  </header>
+
+  <div class="frame">
+    <div class="hud"><span><b>OGGY TOWN</b> · every house is a project</span><span id="clock">☀ DAY</span></div>
+    <div class="stage" id="stage">
+      <canvas id="world" tabindex="0" aria-label="A pixel town. Move with arrow keys or WASD, or click a spot to walk there. Press Enter at a door to open that project. Every place is also listed below the map."></canvas>
+      <canvas id="wipe"></canvas>
+      <div id="labels"></div>
+      <div id="prompt" hidden></div>
+      <div id="hint">WASD / arrows or click to walk · Enter at a door</div>
+      <div id="dialog" hidden><div class="who" id="dWho"></div><div id="dText"></div><span class="more">▼</span></div>
+      <article id="panel" hidden></article>
+    </div>
+    <div class="pad" id="pad">
+      <div class="dpad">
+        <span></span><button data-d="up">▲</button><span></span>
+        <button data-d="left">◀</button><span></span><button data-d="right">▶</button>
+        <span></span><button data-d="down">▼</button><span></span>
+      </div>
+      <div class="ab"><button class="b" id="bB">B</button><button class="a" id="bA">A</button></div>
+    </div>
+  </div>
+
+  <h2 class="sec">Town directory</h2>
+  <p class="sub">No time to walk? Every place in town, one click away.</p>
+  <div class="dir" id="dir"></div>
+
+  <footer>Hand-drawn in code, one pixel at a time · <a href="https://github.com/AkshayOggisetty">github.com/AkshayOggisetty</a></footer>
+</div>
+
+<script>
+'use strict';
+/* ============================================================ content */
+const GH = 'https://github.com/AkshayOggisetty/';
+const PLACES = {
+  home: { name: "Akshay's House", icon: 'home', color: '#d0693f', kind: 'About me',
+    kicker: 'Home', tagline: "Hi, I'm Akshay. I build backends, search and LLM features that real people use.",
+    about: true },
+  csfaq: { name: 'Samagama CSFAQ', icon: 'q', color: '#3f6db3', kind: 'IIT Ropar · live platform',
+    kicker: 'Vicharanashala Lab, IIT Ropar · Summer Intern · May\'26 – Present',
+    tagline: 'A self-maintaining FAQ portal with 5K+ registered interns and 2K+ daily visits across 3 cohorts.',
+    sections: [
+      { h: 'What the platform does', text: 'A team-built portal that turns Zoom sessions into FAQs using LLM extraction, serves them through hybrid vector + keyword search, auto-answers community questions when it is confident (and escalates the rest to people), and re-audits FAQs for drift every 6 hours.' },
+      { h: 'What I worked on', list: [
+        'Fixed semantic search in production: the Atlas vector index had silently failed, so vector search returned nothing. Rebuilt it with cohort filters and added a keyword fallback for when the embedding service is down.',
+        'Made LLM extraction over Zoom transcripts and documents return structured outputs (category, audience, tags, summary) checked against a fixed taxonomy, feeding weighted text and facet indexes for search and RAG.',
+        'Ran a QA/security audit: 27 regression tests (NoSQL injection, mass assignment, ReDoS), password and CORS hardening.',
+        'Fixed a database DNS startup failure and a broken Docker/CI build; made the AskAI chatbot and welcome package admin-toggleable.',
+        'Site admin for samagama.in.' ] },
+      { h: 'Stack', chips: ['TypeScript', 'Node / Express', 'React', 'MongoDB Atlas Vector Search', 'Redis', 'LLM APIs', 'Docker'] } ],
+    links: [['Live site', 'https://samagama.in/csfaq'], ['GitHub', 'https://github.com/vicharanashala/crowd-source-faq']] },
+  curio: { name: 'Curio', icon: 'book', color: '#6c4bb4', kind: 'IIT Ropar · AI knowledge base',
+    kicker: 'Vicharanashala Lab, IIT Ropar', tagline: 'A knowledge base that improves itself: curated FAQ, an AI assistant, a Q&A forum and reputation-based moderation.',
+    sections: [
+      { h: 'Highlights', list: [
+        'AI assistant using consent-gated RAG: answers from the FAQ above a similarity threshold, asks before searching the forum, then links the matching thread. Chat sessions persist.',
+        'Embedding-based duplicate detection and hybrid keyword + semantic search.',
+        'LLM quality gates on every post: gibberish and unfinished-question detection, plus an opt-in "Refine with AI".',
+        'Rotates Gemini API keys on rate limits with graceful degradation; a deterministic mock-AI mode keeps 83 tests and CI offline.' ] },
+      { h: 'Stack', chips: ['MongoDB', 'Express', 'React (Vite)', 'Node.js', 'Gemini', 'Jest'] } ],
+    links: [['GitHub', 'https://github.com/vicharanashala/cp1']] },
+  spandan: { name: 'Spandan', icon: 'bars', color: '#2f8a7a', kind: 'IIT Ropar · live polling',
+    kicker: 'Vicharanashala Lab, IIT Ropar', tagline: 'A live classroom polling platform. I worked on scaling it to 1,000 concurrent users.',
+    sections: [
+      { h: 'What I worked on', list: [
+        'Traced a crash at ~700 concurrent users to bcrypt blocking the event loop, a single process, N+1 leaderboard queries and O(N²) join broadcasts.',
+        'Worked on native bcrypt, a PM2 cluster, a Redis Socket.IO adapter, an aggregated and cached leaderboard, coalesced broadcasts and classroom-friendly rate limits.',
+        'Built a load-test harness reporting p50/p95/p99 latency; login p95 stayed around 130 ms at 300 simulated users.' ] },
+      { h: 'Stack', chips: ['Node.js', 'Socket.IO', 'MongoDB', 'Redis', 'PM2', 'nginx'] } ],
+    links: [['Live site', 'https://spandan.fun'], ['GitHub', 'https://github.com/vicharanashala/spandan']] },
+  kutumbai: { name: 'KutumbAI', icon: 'heart', color: '#c2456b', kind: 'Microsoft AI Unlocked · Top 250',
+    kicker: "Mar'26 · Microsoft AI Unlocked, Top 250 ideas nationwide", tagline: "India's personal family intelligence assistant for rural households.",
+    sections: [
+      { h: 'Highlights', list: [
+        'Multilingual conversational assistant (Gemini behind a serverless proxy) that detects the language and advises on welfare schemes, savings and education.',
+        'Personalised from the household profile: vaccination and loan reminders, symptom triage to nearby clinics, occupation advice for farmers, daily-wage workers and small businesses.',
+        'Companion Kutumb Kavach: a one-press distress alert to nearby users, family and 112.' ] },
+      { h: 'Stack', chips: ['JavaScript', 'Vercel serverless', 'Gemini'] } ],
+    links: [['Live site', 'https://kutumb-ai.vercel.app/'], ['GitHub', GH + 'KutumbAI']] },
+  nirnay: { name: 'Kutumb Nirnay', icon: 'arrow', color: '#d08a2c', kind: 'SIH 2026 · career decisions',
+    kicker: "Sep'26 – Oct'26 · Smart India Hackathon 2026, PS SIH26241 (MSDE)", tagline: 'Helps a student and their parents make one vocational-career decision together.',
+    sections: [
+      { h: 'Highlights', list: [
+        'One decision shown as a student view and a parent view; ranks options by placement-weighted earnings, break-even month and travel cost to nearby ITIs.',
+        'Grounded Gemini assistant that may only cite the tool\'s own figures: explains recommendations, answers family concerns in 6 Indian languages, writes the printed plan, and extracts profile fields from free text as structured JSON.',
+        'API key rotation with model fallback; 79 automated UI checks; deployed on Vercel.' ] },
+      { h: 'Stack', chips: ['JavaScript', 'Vercel', 'Gemini', 'Structured outputs'] } ],
+    links: [['Live site', 'https://kutumb-nirnay.vercel.app'], ['GitHub', GH + 'kutumb-nirnay']] },
+  skills: { name: 'The Workshop', icon: 'wrench', color: '#5b6b7d', kind: 'Skills & tools',
+    kicker: 'Skills', tagline: 'The tools on the workbench.',
+    sections: [
+      { h: 'LLMs & search', chips: ['RAG', 'Embeddings', 'Vector search (Atlas)', 'Hybrid search (RRF)', 'Structured outputs', 'Prompt design', 'Gemini', 'OpenAI-style APIs'] },
+      { h: 'Languages', chips: ['Python', 'TypeScript', 'JavaScript', 'SQL', 'PL/SQL', 'Java', 'C', 'Bash'] },
+      { h: 'Backend & web', chips: ['FastAPI', 'Flask', 'Node.js / Express', 'REST', 'Socket.IO', 'React', 'PWA'] },
+      { h: 'Databases', chips: ['PostgreSQL', 'MongoDB', 'Oracle DB', 'Redis'] },
+      { h: 'ML & data', chips: ['scikit-learn', 'XGBoost', 'LightGBM', 'Pandas', 'NumPy', 'Spark (PySpark, MLlib)', 'Hadoop', 'Earth Engine'] },
+      { h: 'Infra', chips: ['Docker', 'GitHub Actions', 'PM2', 'nginx', 'Vercel', 'Render', 'Linux', 'Git'] },
+      { h: 'Coursework', chips: ['DBMS', 'Design & Analysis of Algorithms', 'Data Structures', 'OOP', 'Machine Learning', 'Big Data Analytics', 'AI', 'Operating Systems', 'Computer Networks'] } ] },
+  moodsync: { name: 'MoodSync 2.0', icon: 'note', color: '#8f3fa8', kind: 'Music recommender',
+    kicker: 'Project', tagline: 'Music recommendations that follow your mood.',
+    sections: [
+      { h: 'Highlights', list: ['Personalised recommendations from mood/BPM, listening history and time of day.', 'Designed an 8+ table relational schema with PL/SQL triggers and stored procedures behind a Python API.'] },
+      { h: 'Stack', chips: ['React', 'Flask', 'Oracle DB', 'PL/SQL'] } ],
+    links: [['GitHub', GH + 'MoodSync2.0']] },
+  vastra: { name: 'VastraSagar', icon: 'shirt', color: '#b8573a', kind: 'Sales tracker',
+    kicker: 'Project', tagline: 'A full-stack sales tracker for a clothing business.',
+    sections: [
+      { h: 'Highlights', list: ['Python backend with a filtered, paginated REST API on PostgreSQL.', 'Daily, monthly and yearly profit dashboards; deployed on Render.'] },
+      { h: 'Stack', chips: ['Flask', 'PostgreSQL', 'Render'] } ],
+    links: [['GitHub', GH + 'NewVastraSagar']] },
+  saarathi: { name: 'Saarathi', icon: 'light', color: '#2d5f9a', kind: 'Flipkart Gridlock 2.0',
+    kicker: "Jun'26 · Flipkart Gridlock Hackathon 2.0", tagline: 'Forecasts the traffic impact of city events and plans police and barricade deployment before congestion happens.',
+    sections: [
+      { h: 'Highlights', list: ['Fused three XGBoost models into a 0–100 Impact Score over 8K+ geocoded Bengaluru incidents.', 'Recommends police and barricade deployment with diversion routes; an event-stream replay simulates a live feed.', 'Served through FastAPI with a Streamlit + Folium dashboard.'] },
+      { h: 'Stack', chips: ['Python', 'XGBoost', 'FastAPI', 'Streamlit', 'Folium'] } ],
+    links: [['Live demo', 'https://akshayoggisetty-saarathi.hf.space'], ['GitHub', GH + 'Saarathi']] },
+  f1: { name: 'F1 Telemetry Garage', icon: 'flag', color: '#c0322b', kind: 'Spark & YARN',
+    kicker: "Oct'26 – Nov'26 · Big Data Analytics", tagline: 'End-to-end F1 telemetry analytics on a self-built Hadoop/YARN cluster.',
+    sections: [
+      { h: 'Highlights', list: ['PySpark pipeline on a 3-node Hadoop/YARN cluster processing 3.09M telemetry records (656 MB) of the 2025 Azerbaijan GP from HDFS.', 'Spark MLlib random-forest next-lap predictor (MAE 0.535 s, R² 0.633), tyre-degradation regression, K-Means driver clustering and anomaly detection.', 'F1-styled React site with session replay and an in-browser predictor running the exported 80-tree forest.'] },
+      { h: 'Stack', chips: ['PySpark', 'Spark MLlib', 'Hadoop HDFS / YARN', 'React'] } ],
+    links: [['GitHub', GH + 'f1-telemetry-spark']] },
+  airline: { name: 'Sentiment Control Tower', icon: 'plane', color: '#3a7ca5', kind: 'ML evaluation study',
+    kicker: "Aug'26 – Oct'26 · Fundamentals of Machine Learning", tagline: 'Do sentiment models learn the airline instead of the sentiment?',
+    sections: [
+      { h: 'Highlights', list: ['Leave-One-Airline-Out evaluation on 14.6K tweets with 4 models, 5 seeds and bootstrap confidence intervals.', 'Masking airline names halves the generalisation gap (macro-F1 gap 0.027→0.012 for LR, 0.053→0.023 for SVM): models were learning airline identity.', 'Separated label shift (36–78% negative share) with prior adjustment and EM, plus counterfactual airline-swap tests.'] },
+      { h: 'Stack', chips: ['Python', 'scikit-learn', 'Bootstrap CIs'] } ],
+    links: [['GitHub', GH + 'airline-sentiment-generalization']] },
+  post: { name: 'Post Office', icon: 'mail', color: '#c0392b', kind: 'Contact',
+    kicker: 'Contact', tagline: 'Letters, internships and good problems welcome.',
+    sections: [{ h: 'Reach me', html: '<p>Email: <a href="mailto:akshayoggisetty13@gmail.com">akshayoggisetty13@gmail.com</a></p>' }],
+    links: [['Email', 'mailto:akshayoggisetty13@gmail.com'], ['GitHub', 'https://github.com/AkshayOggisetty'], ['LinkedIn', 'https://www.linkedin.com/in/akshayoggisetty'], ['Resume (PDF)', 'resume.pdf']] },
+  hotel: { name: 'Hotel Management', icon: 'h', color: '#7a5c3a', kind: 'Java desktop app',
+    kicker: 'Project', tagline: 'A desktop app for running a small hotel.',
+    sections: [{ h: 'Highlights', list: ['Room allocation, front desk and automated GST billing.', 'Real-time dashboard built on an MVC architecture.'] }, { h: 'Stack', chips: ['Java', 'JavaFX', 'Maven'] }],
+    links: [['GitHub', GH + 'HotelManagementSystem']] },
+  road: { name: 'Road Safety Lab', icon: 'warn', color: '#c98a1c', kind: 'Accident severity ML',
+    kicker: 'Project', tagline: 'Predicting road-accident severity from the sky.',
+    sections: [{ h: 'Highlights', list: ['Classified 300K+ UK collisions using 12 satellite-derived features (land surface temperature, NDWI, rainfall) from Google Earth Engine.', 'Improved AUC over traffic-only baselines.'] }, { h: 'Stack', chips: ['Python', 'XGBoost', 'Google Earth Engine'] }],
+    links: [['GitHub', GH + 'IAI_Project']] },
+  conceptly: { name: 'Conceptly Kiosk', icon: 'bulb', color: '#d4a017', kind: 'Chrome extension',
+    kicker: 'Project', tagline: 'Explain-like-I\'m-five, right on the page you are reading.',
+    sections: [{ h: 'Highlights', list: ['Chrome extension that detects technical terms and math on a page and gives ELI5 explanations, with math rendered in KaTeX.'] }, { h: 'Stack', chips: ['JavaScript', 'Manifest V3', 'KaTeX'] }],
+    links: [['GitHub', GH + 'Conceptly']] },
+  crop: { name: 'Crop Lab', icon: 'leaf', color: '#4f8a3a', kind: 'Research · MIT Manipal',
+    kicker: "Dec'25 – Present · Undergraduate Researcher under Dr. Harsh Nagar", tagline: 'Monitoring crop health from space.',
+    sections: [{ h: 'What I do', list: ['Monitor agricultural crop health from Sentinel-2 satellite imagery using remote-sensing indices (NDVI, NDWI time series) and machine learning.'] }, { h: 'Stack', chips: ['Python', 'Google Earth Engine', 'Rasterio', 'scikit-learn'] }],
+    links: [['GitHub', GH + 'AgricultureCropMonitoring']] },
+  moss: { name: 'MOSS Clubhouse', icon: 'star', color: '#e0703a', kind: 'Vice President',
+    kicker: "Sep'26 – Present · Manipal Open Source Society", tagline: 'Vice President of the open-source society at MIT Manipal.',
+    sections: [{ h: 'What we ran', list: ['Hosted Hacktoberfest × MOSS Hack Day with Major League Hacking (MLH).', 'Hosted a Make Your Own Radio workshop with the MIT Radio Station.', 'Organised a Git Capture-The-Flag at TechTatva\'25 (Converge) with a Discord bot seeded with bugs as puzzles.'] },
+      { h: 'Also', text: 'Board Member, NSS (MAHE MIT Units 1 & 2): beach clean-ups, donation drives, and visits to old-age homes, schools, cancer centres and mental-health facilities.' }] },
+  viatica: { name: 'Viatica Boat', icon: 'compass', color: '#1f7a8c', kind: 'SIH 2026 · smart tourism',
+    kicker: "Aug'26 – Oct'26 · Smart India Hackathon 2026, PS IHSIH019", tagline: 'An offline-first travel companion: one live trip record for itinerary, transport, SOS and tickets.',
+    sections: [{ h: 'Highlights', list: ['Offline-first PWA across 10 modules with voice input in English, Hindi and Kannada.', 'Greedy-insertion scheduler (an orienteering problem) that re-plans the remaining stops on delays, votes or budget changes.', 'HMAC + TOTP rotating QR tickets verified offline at the gate; SOS with SMS fallback carrying live trip context.'] }, { h: 'Stack', chips: ['React PWA', 'Service worker', 'Node / Express', 'Socket.IO', 'MongoDB'] }],
+    links: [['GitHub', GH + 'viatica']] }
+};
+const ABOUT_HTML = `<div class="about"><img src="photo.jpeg" alt="Sai Akshay Oggisetty"><div>
+  <p>I'm a third-year B.Tech student in Data Science &amp; Engineering at MIT Manipal. This summer I'm interning at the Vicharanashala Lab, IIT Ropar, working on platforms that thousands of interns use every day: semantic search, LLM pipelines and backends that have to stay up.</p>
+  <p style="margin-top:8px">Outside the lab I'm Vice President of the Manipal Open Source Society, a researcher on satellite crop monitoring, and a regular at hackathons.</p></div></div>`;
+const EDU_HTML = `<table class="edu"><tr><td>2024 – Present</td><td>B.Tech, Data Science &amp; Engineering · Manipal Institute of Technology</td></tr>
+  <tr><td>2024</td><td>AP Intermediate (XII) · 96%</td></tr><tr><td>2022</td><td>ICSE (X) · 95.2%</td></tr></table>`;
+
+const SIGNS = {
+  lab: ['Vicharanashala Lab, IIT Ropar', ["VICHARANASHALA LAB · IIT ROPAR. Summer Intern, May'26 – present.", 'Inside: Samagama CSFAQ, Curio and Spandan. I also contributed to ViBe (learning platform), Ajrasakha (agri-AI advisor) and FLN (numeracy tool).']],
+  statue: ['Trophy statue', ['MICROSOFT AI UNLOCKED · Top 250 ideas nationwide, for KutumbAI.', 'Also on the plinth: Flipkart Gridlock Hackathon 2.0 (Saarathi) and Smart India Hackathon 2026 (Viatica, Kutumb Nirnay).']],
+  board: ['Notice board', ['A fresh copy of my resume is pinned here.', 'Opening it now…'], 'resume'],
+  nss: ['Beach sign', ['NSS CLEAN-UP CREW. As an NSS board member I helped run beach clean-ups like this one, plus donation drives and visits to old-age homes, schools and cancer centres.']],
+  car: ['Tiny race car', ['Vroom. My Spark MLlib model predicts the next lap time within 0.535 s on average.']],
+  cow: ['Gauri the cow', null]
+};
+const COW_LINES = [
+  'Moo. The lab compound up north is where the live stuff lives. 2K+ people a day use the FAQ portal.',
+  'Moo… someone found a vector index that had silently failed in production. Search works again.',
+  'Moo! You can click anywhere to walk there. I pretend not to notice.',
+  'Mooo. The boat at the pier is Viatica. It works offline, unlike me before grass.',
+  'Moo. If you are in a hurry, the town directory is just below the map.'
+];
+
+/* ============================================================ pixel icons (7x7) */
+const ICONS = {
+  home: ['...x...', '..xxx..', '.xxxxx.', 'xxxxxxx', '.x...x.', '.x.x.x.', '.x.x.x.'],
+  q: ['.xxxxx.', 'xx...xx', '....xx.', '...xx..', '...x...', '.......', '...x...'],
+  book: ['xxx.xxx', 'x.x.x.x', 'x.x.x.x', 'x.x.x.x', 'x.x.x.x', 'xxx.xxx', '.xx.xx.'],
+  bars: ['......x', '....x.x', '....x.x', '..x.x.x', '..x.x.x', 'x.x.x.x', 'x.x.x.x'],
+  heart: ['.xx.xx.', 'xxxxxxx', 'xxxxxxx', '.xxxxx.', '..xxx..', '...x...', '.......'],
+  arrow: ['...x...', '..xxx..', '.x.x.x.', '...x...', '...x...', '...x...', '..xxx..'],
+  wrench: ['....xx.', '...x..x', '...x.x.', '..xx...', '.xx....', 'xx.....', 'x......'],
+  note: ['...xxxx', '...x..x', '...x..x', '...x..x', '.xxx.xx', 'xxxx.xx', '.xx....'],
+  shirt: ['xx...xx', 'xxx.xxx', '.xxxxx.', '.xxxxx.', '.xxxxx.', '.xxxxx.', '.......'],
+  light: ['..xxx..', '.x...x.', '.x.x.x.', '.x...x.', '.x.x.x.', '.x...x.', '..xxx..'],
+  flag: ['x.x.x.x', '.x.x.x.', 'x.x.x.x', '.x.x.x.', 'x......', 'x......', 'x......'],
+  plane: ['...x...', '..xxx..', 'xxxxxxx', '...x...', '...x...', '..xxx..', '.......'],
+  mail: ['xxxxxxx', 'xx...xx', 'x.x.x.x', 'x..x..x', 'x.....x', 'xxxxxxx', '.......'],
+  h: ['x.....x', 'x.....x', 'x.....x', 'xxxxxxx', 'x.....x', 'x.....x', 'x.....x'],
+  warn: ['...x...', '..x.x..', '..x.x..', '.x.x.x.', '.x...x.', 'x..x..x', 'xxxxxxx'],
+  bulb: ['..xxx..', '.x...x.', '.x...x.', '.x...x.', '..x.x..', '..xxx..', '..xxx..'],
+  leaf: ['....xx.', '...xxxx', '..xxxx.', '.x.xx..', 'x......', '.......', '.......'],
+  star: ['...x...', '...x...', 'xxxxxxx', '.xxxxx.', '..xxx..', '.xx.xx.', 'x.....x'],
+  compass: ['..xxx..', '.x..xx.', 'x..xx.x', 'x.xx..x', 'xxx...x', '.x...x.', '..xxx..']
+};
+
+/* ============================================================ world */
+const T = 16, MW = 48, MH = 30;
+const cv = document.getElementById('world'), ctx = cv.getContext('2d');
+cv.width = MW * T; cv.height = MH * T; ctx.imageSmoothingEnabled = false;
+const hash = (x, y, s = 0) => { let h = (x * 374761393 + y * 668265263 + s * 1442695041) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967295; };
+const shade = (hex, a) => { const n = parseInt(hex.slice(1), 16); const f = c => Math.max(0, Math.min(255, Math.round(a < 0 ? c * (1 + a) : c + (255 - c) * a))); return `rgb(${f(n >> 16)},${f((n >> 8) & 255)},${f(n & 255)})`; };
+
+const G = Array.from({ length: MH }, () => Array(MW).fill('g'));
+const fill = (t, x, y, w, h) => { for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) if (G[j] && G[j][i] !== undefined) G[j][i] = t; };
+fill('s', 0, 24, MW, 2); fill('w', 0, 26, MW, 4);
+fill('p', 2, 11, 44, 2); fill('p', 2, 18, 44, 2); fill('p', 2, 11, 1, 9); fill('p', 45, 11, 1, 9);
+fill('p', 3, 8, 17, 1); fill('p', 11, 9, 2, 2); fill('x', 20, 13, 8, 5); fill('p', 23, 20, 2, 4);
+fill('c', 39, 3, 6, 6); fill('d', 40, 26, 2, 3);
+
+const occ = Array.from({ length: MH }, () => Array(MW).fill(null));
+const objs = [];
+function add(o) {
+  for (let j = o.y; j < o.y + o.h; j++) for (let i = o.x; i < o.x + o.w; i++) if (occ[j] && i >= 0 && i < MW) occ[j][i] = o;
+  objs.push(o); return o;
+}
+const free = (x, y, w, h, t = 'g') => { for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) if (!G[j] || G[j][i] !== t || occ[j][i]) return false; return true; };
+
+// buildings: [id, x, y, w, h, wall, roof, deco]
+const B = [
+  ['csfaq', 3, 3, 6, 4, '#efe3c6', '#3f6db3', 'columns'], ['curio', 10, 3, 5, 4, '#e8dcf3', '#6c4bb4'], ['spandan', 16, 3, 4, 4, '#dff0e9', '#2f8a7a', 'antenna'],
+  ['moss', 23, 3, 6, 4, '#f6e2cf', '#e0703a', 'flag'], ['conceptly', 30, 4, 3, 3, '#fbf0c9', '#d4a017'], ['crop', 34, 3, 4, 4, '#e3efd6', '#4f8a3a'],
+  ['kutumbai', 3, 13, 5, 4, '#f7dde3', '#c2456b'], ['nirnay', 9, 13, 5, 4, '#f7e6c9', '#d08a2c'], ['home', 15, 13, 5, 4, '#f4e4d4', '#d0693f', 'chimney'],
+  ['skills', 28, 13, 4, 4, '#dfe3e8', '#5b6b7d'], ['moodsync', 33, 13, 5, 4, '#eddcf2', '#8f3fa8', 'awning'], ['vastra', 39, 13, 5, 4, '#f6e0d6', '#b8573a', 'awning'],
+  ['saarathi', 3, 20, 5, 4, '#dde7f3', '#2d5f9a', 'beacon'], ['f1', 9, 20, 5, 4, '#ececec', '#c0322b', 'garage'], ['airline', 16, 20, 4, 4, '#e0eef6', '#3a7ca5', 'tower'],
+  ['post', 26, 20, 5, 4, '#f3dcd6', '#c0392b', 'mailbox'], ['hotel', 32, 20, 6, 4, '#efe5d6', '#7a5c3a'], ['road', 39, 20, 5, 4, '#f6ead0', '#c98a1c', 'cones']
+];
+for (const [id, x, y, w, h, wall, roof, deco] of B) {
+  const dx = x + (w >> 1), dy = y + h - 1;
+  add({ t: 'bld', id, x, y, w, h, wall, roof, deco, dx, dy, act: 'ENTER', name: PLACES[id].name });
+  for (let j = dy + 1; j < MH && G[j][dx] === 'g'; j++) G[j][dx] = 'p';
+}
+// fences
+const fence = (x0, y0, x1, y1, gate = []) => { for (let x = x0; x <= x1; x++) for (const y of [y0, y1]) if (!gate.some(g => g[0] === x && g[1] === y)) add({ t: 'fence', x, y, w: 1, h: 1, hz: 1 }); for (let y = y0 + 1; y < y1; y++) for (const x of [x0, x1]) add({ t: 'fence', x, y, w: 1, h: 1, hz: 0 }); };
+fence(2, 2, 20, 9, [[11, 9], [12, 9]]); fence(38, 2, 45, 9);
+for (let j = 3; j < 9; j++) for (let i = 39; i < 45; i++) add({ t: 'crop', x: i, y: j, w: 1, h: 1 });
+// props
+add({ t: 'statue', x: 23, y: 14, w: 2, h: 2, act: 'READ', sign: 'statue', name: 'Trophy statue' });
+add({ t: 'board', x: 21, y: 14, w: 1, h: 1, act: 'READ', sign: 'board', name: 'Notice board' });
+add({ t: 'sign', x: 13, y: 10, w: 1, h: 1, act: 'READ', sign: 'lab', name: 'Lab sign' });
+add({ t: 'sign', x: 9, y: 25, w: 1, h: 1, act: 'READ', sign: 'nss', name: 'Beach sign' });
+add({ t: 'car', x: 14, y: 23, w: 2, h: 1, act: 'TALK', sign: 'car', name: 'Race car' });
+add({ t: 'boat', x: 40, y: 29, w: 2, h: 1, act: 'BOARD', place: 'viatica', name: 'Viatica Boat' });
+for (const [x, y] of [[20, 13], [27, 13], [20, 17], [27, 17], [19, 24], [30, 24]]) add({ t: 'lamp', x, y, w: 1, h: 1 });
+for (let x = 0; x < MW; x += 2) if (free(x, 0, 2, 2)) add({ t: 'tree', x, y: 0, w: 2, h: 2 });
+for (let y = 2; y < 24; y += 2) for (const x of [0, 46]) if (free(x, y, 2, 2)) add({ t: 'tree', x, y, w: 2, h: 2 });
+for (const [x, y] of [[21, 3], [21, 5], [14, 20], [20, 20], [20, 22], [43, 15], [43, 21], [32, 7], [29, 8], [6, 9]]) if (free(x, y, 2, 2)) add({ t: 'tree', x, y, w: 2, h: 2 });
+for (const [x, y] of [[8, 14], [14, 15], [32, 14], [38, 15], [8, 21], [31, 21], [38, 22], [25, 21], [44, 13]]) if (free(x, y, 1, 1)) add({ t: 'bush', x, y, w: 1, h: 1 });
+for (const x of [3, 15, 27, 35, 45]) if (free(x, 24, 1, 1, 's')) add({ t: 'palm', x, y: 24, w: 1, h: 1 });
+
+const doorOf = {}; objs.forEach(o => { if (o.t === 'bld') doorOf[o.id] = o; });
+
+/* ============================================================ ground cache */
+const gc = document.createElement('canvas'); gc.width = cv.width; gc.height = cv.height;
+(function paintGround() {
+  const g = gc.getContext('2d');
+  const px = (c, x, y, w = 1, h = 1) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
+    const t = G[y][x], X = x * T, Y = y * T;
+    if (t === 'g' || t === 'c') {
+      px('#7cbf5a', X, Y, T, T);
+      for (let k = 0; k < 5; k++) { const r = hash(x, y, k); px(r > .5 ? '#6aab4b' : '#93d06c', X + Math.floor(hash(x, y, k + 9) * 15), Y + Math.floor(r * 15), 1, 2); }
+      if (t === 'g' && hash(x, y, 77) < .06 && !occ[y][x]) { const c = ['#ffd6e7', '#fff3a6', '#ffffff'][Math.floor(hash(x, y, 5) * 3)]; px(c, X + 5, Y + 6, 2, 2); px(c, X + 9, Y + 10, 2, 2); px('#4c8a35', X + 6, Y + 8, 1, 2); }
+    } else if (t === 'p') {
+      px('#d9b27c', X, Y, T, T);
+      for (let k = 0; k < 4; k++) px('#c49a66', X + Math.floor(hash(x, y, k) * 14), Y + Math.floor(hash(x, y, k + 3) * 14), 2, 1);
+      const n = (i, j) => (G[j] && (G[j][i] === 'g' || G[j][i] === 'c'));
+      if (n(x, y - 1)) px('#bf9460', X, Y, T, 1); if (n(x, y + 1)) px('#bf9460', X, Y + 15, T, 1);
+      if (n(x - 1, y)) px('#bf9460', X, Y, 1, T); if (n(x + 1, y)) px('#bf9460', X + 15, Y, 1, T);
+    } else if (t === 's') {
+      px('#f0d9a0', X, Y, T, T);
+      for (let k = 0; k < 4; k++) px('#e0c283', X + Math.floor(hash(x, y, k) * 15), Y + Math.floor(hash(x, y, k + 4) * 15), 1, 1);
+    } else if (t === 'x') {
+      px('#cfc7b8', X, Y, T, T); px('#b0a796', X, Y + 7, T, 1); px('#b0a796', X + ((y & 1) ? 4 : 11), Y, 1, 7); px('#b0a796', X + ((y & 1) ? 11 : 4), Y + 8, 1, 8);
+    } else if (t === 'w' || t === 'd') {
+      px('#3b8fd0', X, Y, T, T);
+      if (t === 'd') { px('#a8743f', X, Y, T, T); for (let k = 3; k < 16; k += 5) px('#8a5c30', X, Y + k, T, 1); px('#6b4424', X + (x === 40 ? 0 : 15), Y, 1, T); }
+    }
+  }
+})();
+
+/* ============================================================ sprites */
+const P_PAL = { h: '#2b2024', s: '#c98d64', e: '#1a1214', r: '#a3352a', R: '#7a2219', b: '#34508a', w: '#f2efe6' };
+const SPR = {
+  down: ['..hhhhhh..', '.hhhhhhhh.', '.hhhhhhhh.', '.hssssssh.', '.sesssses.', '.ssssssss.', '..ssssss..', '.rrrrrrrr.', 'rrrRrrRrrr', 'srrRrrRrrs', '.rrrrrrrr.', '.bbbbbbbb.', '.bbb..bbb.', '.ww....ww.'],
+  up: ['..hhhhhh..', '.hhhhhhhh.', '.hhhhhhhh.', '.hhhhhhhh.', '.hhhhhhhh.', '.shhhhhhs.', '..ssssss..', '.rrrrrrrr.', 'rrrrrrrrrr', 'srrrRRrrrs', '.rrrrrrrr.', '.bbbbbbbb.', '.bbb..bbb.', '.ww....ww.'],
+  side: ['..hhhhhh..', '.hhhhhhhh.', '.hhhhhhhh.', '..hhsssss.', '..hhssses.', '..hsssssss', '...sssss..', '..rrrrrr..', '..rrrRrr..', '..rrrsrr..', '..rrrrrr..', '..bbbbbb..', '..bb..bb..', '..ww..ww..']
+};
+const STEP = { down: ['.bb....bb.', '.ww.....w.'], up: ['.bb....bb.', '.w.....ww.'], side: ['.bb....bb.', '.ww....ww.'] };
+const COW = ['..........hh..', '.........wwww.', 'twwwwwwwwwwwkw', 'twppwwwwwwwwww', '.wppppwwwwwwnn', '.wwppwwwwwppww', '.wwwwwwwwwpppw', '.ww.ww..ww.ww.', '.ww.ww..ww.ww.', '.kk.kk..kk.kk.'];
+const C_PAL = { h: '#e9e2c9', w: '#f7f4ee', p: '#7a4b2a', k: '#2a1d1a', n: '#e8a3a3', t: '#7a4b2a' };
+function sprite(rows, pal, ox, oy, flip) {
+  for (let r = 0; r < rows.length; r++) { const row = rows[r]; for (let c = 0; c < row.length; c++) { const ch = row[flip ? row.length - 1 - c : c]; if (ch !== '.') { ctx.fillStyle = pal[ch]; ctx.fillRect(ox + c, oy + r, 1, 1); } } }
+}
+function icon(c, name, ox, oy, col, s = 1) {
+  c.fillStyle = col; ICONS[name].forEach((row, r) => { for (let i = 0; i < 7; i++) if (row[i] === 'x') c.fillRect(ox + i * s, oy + r * s, s, s); });
+}
+
+/* ============================================================ state */
+const player = { x: 17, y: 17, px: 17 * T, py: 17 * T, dir: 'down', flip: false, moving: false, fx: 0, fy: 0, t: 0, steps: 0, path: [], then: null };
+const cow = add({ t: 'cow', x: 25, y: 22, w: 1, h: 1, act: 'TALK', sign: 'cow', name: 'Gauri the cow', px: 25 * T, py: 22 * T, fx: 0, fy: 0, mt: 1, flip: false, wait: 2 });
+const S = { night: false, labels: true, dialog: null, page: null, busy: false, held: [] };
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const h0 = new Date().getHours(); S.night = h0 >= 19 || h0 < 6;
+
+const inB = (x, y) => x >= 0 && y >= 0 && x < MW && y < MH;
+const walk = (x, y) => inB(x, y) && (G[y][x] !== 'w') && !occ[y][x];
+
+/* ============================================================ drawing */
+const OUT = '#2a2238';
+let glows = [];
+function drawBuilding(b, time) {
+  const X = b.x * T, Y = b.y * T, W = b.w * T, H = b.h * T, roofH = b.h >= 4 ? 26 : 20, wt = Y + roofH - 4;
+  ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(X + 4, Y + H - 2, W, 4);
+  ctx.fillStyle = OUT; ctx.fillRect(X, wt, W, Y + H - wt);
+  ctx.fillStyle = b.wall; ctx.fillRect(X + 1, wt, W - 2, Y + H - wt - 1);
+  ctx.fillStyle = shade(b.wall, -.14); ctx.fillRect(X + 1, Y + H - 5, W - 2, 4);
+  const rows = (Y + H - wt) > 34 ? [wt + 7, Y + H - 16] : [Y + H - 15];
+  for (let i = 0; i < b.w; i++) {
+    if (b.x + i === b.dx || (b.deco === 'garage' && Math.abs(b.x + i - b.dx) <= 1)) continue;
+    for (const wy of rows) {
+      const wx = X + i * T + 5;
+      ctx.fillStyle = OUT; ctx.fillRect(wx - 1, wy - 1, 8, 8);
+      ctx.fillStyle = S.night ? '#ffd77a' : '#a9d8f5'; ctx.fillRect(wx, wy, 6, 6);
+      ctx.fillStyle = S.night ? '#ffc04d' : '#e8f6ff'; ctx.fillRect(wx, wy, 2, 2);
+      glows.push([wx + 3, wy + 3, 10]);
+    }
+  }
+  if (b.deco === 'awning') for (let i = 0; i < W - 2; i += 4) { ctx.fillStyle = (i / 4) % 2 ? '#fff' : b.roof; ctx.fillRect(X + 1 + i, Y + H - 21, 4, 4); }
+  const DX = b.dx * T;
+  if (b.deco === 'garage') {
+    ctx.fillStyle = OUT; ctx.fillRect(DX - 13, Y + H - 18, 42, 17);
+    for (let k = 0; k < 16; k += 3) { ctx.fillStyle = k % 6 ? '#8a8f99' : '#a9aeb8'; ctx.fillRect(DX - 12, Y + H - 17 + k, 40, 3); }
+  } else {
+    ctx.fillStyle = OUT; ctx.fillRect(DX + 3, Y + H - 14, 10, 13);
+    ctx.fillStyle = '#7a4b2a'; ctx.fillRect(DX + 4, Y + H - 13, 8, 12);
+    ctx.fillStyle = '#ffcc4d'; ctx.fillRect(DX + 10, Y + H - 7, 1, 2);
+  }
+  if (b.deco === 'columns') for (const off of [-6, 18]) { ctx.fillStyle = '#fff'; ctx.fillRect(DX + off, wt + 2, 4, Y + H - wt - 3); ctx.fillStyle = '#cfc4ad'; ctx.fillRect(DX + off + 3, wt + 2, 1, Y + H - wt - 3); }
+  if (b.deco === 'mailbox') { ctx.fillStyle = OUT; ctx.fillRect(DX + 19, Y + H - 11, 7, 10); ctx.fillStyle = '#d93a2b'; ctx.fillRect(DX + 20, Y + H - 10, 5, 8); }
+  if (b.deco === 'cones') for (const off of [-10, 21]) { ctx.fillStyle = '#ff7a1a'; ctx.fillRect(DX + off + 2, Y + H - 7, 2, 2); ctx.fillRect(DX + off + 1, Y + H - 5, 4, 2); ctx.fillStyle = '#fff'; ctx.fillRect(DX + off + 1, Y + H - 6, 4, 1); ctx.fillStyle = '#ff7a1a'; ctx.fillRect(DX + off, Y + H - 3, 6, 2); }
+  // roof
+  for (let r = 0; r < roofH; r++) {
+    const inset = Math.round((roofH - 1 - r) * .45);
+    ctx.fillStyle = r === roofH - 1 ? shade(b.roof, -.35) : r < 2 ? shade(b.roof, .25) : (r % 4 === 3 ? shade(b.roof, -.12) : b.roof);
+    ctx.fillRect(X - 2 + inset, Y + r, W + 4 - 2 * inset, 1);
+  }
+  const pxX = X + (W >> 1) - 6, pxY = Y + roofH - 14;
+  ctx.fillStyle = OUT; ctx.fillRect(pxX - 1, pxY - 1, 13, 12); ctx.fillStyle = '#fbf3e4'; ctx.fillRect(pxX, pxY, 11, 10);
+  icon(ctx, PLACES[b.id].icon, pxX + 2, pxY + 1, b.roof);
+  const blink = Math.floor(time * 2) % 2;
+  if (b.deco === 'antenna') { ctx.fillStyle = OUT; ctx.fillRect(X + W - 12, Y - 14, 2, 18); ctx.fillRect(X + W - 16, Y - 8, 10, 1); ctx.fillRect(X + W - 15, Y - 4, 8, 1); ctx.fillStyle = blink ? '#ff4d4d' : '#7a1f1f'; ctx.fillRect(X + W - 13, Y - 17, 4, 3); if (blink) glows.push([X + W - 11, Y - 16, 8]); }
+  if (b.deco === 'tower') { ctx.fillStyle = OUT; ctx.fillRect(X + W - 15, Y - 20, 10, 26); ctx.fillStyle = '#e8eef3'; ctx.fillRect(X + W - 14, Y - 12, 8, 18); ctx.fillStyle = OUT; ctx.fillRect(X + W - 19, Y - 22, 18, 10); ctx.fillStyle = '#7fd0ff'; ctx.fillRect(X + W - 18, Y - 21, 16, 8); ctx.fillStyle = blink ? '#ff4d4d' : '#7a1f1f'; ctx.fillRect(X + W - 11, Y - 25, 2, 3); }
+  if (b.deco === 'chimney') { ctx.fillStyle = OUT; ctx.fillRect(X + W - 20, Y - 4, 8, 12); ctx.fillStyle = '#9a4b32'; ctx.fillRect(X + W - 19, Y - 3, 6, 11); if (!RM) for (let k = 0; k < 3; k++) { const p = (time * .6 + k / 3) % 1; ctx.fillStyle = `rgba(235,235,245,${.7 - p * .7})`; const s = 3 + p * 4; ctx.fillRect(X + W - 17 + Math.sin(p * 6 + k) * 3 - s / 2, Y - 6 - p * 22, s, s); } }
+  if (b.deco === 'flag') { ctx.fillStyle = OUT; ctx.fillRect(X + W - 6, Y - 16, 2, 20); ctx.fillStyle = '#ffcc4d'; const f = RM ? 0 : Math.floor(time * 3) % 2; ctx.fillRect(X + W - 4, Y - 16 + f, 9, 6); ctx.fillStyle = '#e0703a'; ctx.fillRect(X + W - 1, Y - 14 + f, 3, 2); }
+  if (b.deco === 'beacon') { ctx.fillStyle = OUT; ctx.fillRect(X + W / 2 - 6, Y - 4, 12, 5); ctx.fillStyle = blink ? '#ff4d4d' : '#3b6cff'; ctx.fillRect(X + W / 2 - 5, Y - 3, 5, 3); ctx.fillStyle = blink ? '#3b6cff' : '#ff4d4d'; ctx.fillRect(X + W / 2, Y - 3, 5, 3); }
+}
+function drawObj(o, time) {
+  const X = o.x * T, Y = o.y * T;
+  switch (o.t) {
+    case 'bld': return drawBuilding(o, time);
+    case 'tree': {
+      const fruit = hash(o.x, o.y, 3) < .35;
+      ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(X + 4, Y + 27, 24, 4);
+      ctx.fillStyle = '#6b4a2b'; ctx.fillRect(X + 13, Y + 18, 6, 12);
+      ctx.fillStyle = '#245a32'; ctx.fillRect(X + 3, Y - 3, 26, 22); ctx.fillRect(X + 1, Y + 2, 30, 13);
+      ctx.fillStyle = '#2f7a3d'; ctx.fillRect(X + 4, Y - 2, 24, 19); ctx.fillRect(X + 2, Y + 3, 28, 11);
+      ctx.fillStyle = '#45a04f'; ctx.fillRect(X + 7, Y, 13, 8); ctx.fillStyle = '#6cc463'; ctx.fillRect(X + 9, Y + 1, 5, 3);
+      if (fruit) { ctx.fillStyle = '#ffb32b'; for (const [a, c] of [[8, 11], [20, 6], [23, 13]]) ctx.fillRect(X + a, Y + c, 2, 3); }
+      return;
+    }
+    case 'palm': {
+      ctx.fillStyle = '#8a6239'; for (let k = 0; k < 14; k++) ctx.fillRect(X + 7 + Math.round(Math.sin(k / 5) * 2), Y + 2 + k, 3, 1);
+      ctx.fillStyle = '#2f8a3d'; ctx.fillRect(X - 1, Y - 2, 18, 3); ctx.fillRect(X + 2, Y - 5, 12, 3); ctx.fillRect(X - 3, Y + 1, 5, 3); ctx.fillRect(X + 14, Y + 1, 5, 3);
+      ctx.fillStyle = '#6b4a2b'; ctx.fillRect(X + 6, Y + 1, 2, 2); ctx.fillRect(X + 9, Y + 1, 2, 2); return;
+    }
+    case 'bush': ctx.fillStyle = '#245a32'; ctx.fillRect(X + 1, Y + 4, 14, 11); ctx.fillStyle = '#3f9147'; ctx.fillRect(X + 2, Y + 5, 12, 8); ctx.fillStyle = '#ff7aa8'; ctx.fillRect(X + 5, Y + 7, 2, 2); ctx.fillRect(X + 10, Y + 9, 2, 2); return;
+    case 'fence': ctx.fillStyle = '#7a5230';
+      if (o.hz) { ctx.fillRect(X, Y + 6, T, 2); ctx.fillRect(X, Y + 11, T, 2); ctx.fillStyle = '#5c3b20'; ctx.fillRect(X + 2, Y + 3, 3, 12); ctx.fillRect(X + 10, Y + 3, 3, 12); }
+      else { ctx.fillRect(X + 6, Y, 3, T); ctx.fillStyle = '#5c3b20'; ctx.fillRect(X + 5, Y + 2, 5, 3); ctx.fillRect(X + 5, Y + 10, 5, 3); }
+      return;
+    case 'crop': { ctx.fillStyle = '#8a5a35'; ctx.fillRect(X, Y, T, T); ctx.fillStyle = '#734a2b'; ctx.fillRect(X, Y + 7, T, 2);
+      const gold = o.y % 2; ctx.fillStyle = gold ? '#e6b93d' : '#4f9a3a';
+      for (const a of [2, 7, 12]) { ctx.fillRect(X + a, Y + 2, 2, 5); ctx.fillRect(X + a - 1, Y + 1, 1, 2); ctx.fillRect(X + a, Y + 10, 2, 5); }
+      if (o.x === 41 && o.y === 5) { ctx.fillStyle = '#6b4a2b'; ctx.fillRect(X + 7, Y - 6, 2, 22); ctx.fillRect(X, Y, 16, 2); ctx.fillStyle = '#e6b93d'; ctx.fillRect(X + 4, Y - 10, 8, 5); ctx.fillStyle = '#c94a3a'; ctx.fillRect(X + 4, Y + 2, 8, 6); }
+      return; }
+    case 'lamp': ctx.fillStyle = '#3a3346'; ctx.fillRect(X + 7, Y + 2, 2, 13); ctx.fillRect(X + 5, Y + 13, 6, 2);
+      ctx.fillStyle = S.night ? '#ffe28a' : '#d9d2c3'; ctx.fillRect(X + 5, Y - 2, 6, 5); glows.push([X + 8, Y, 34]); return;
+    case 'sign': ctx.fillStyle = '#6b4a2b'; ctx.fillRect(X + 7, Y + 7, 2, 8); ctx.fillStyle = OUT; ctx.fillRect(X + 1, Y + 1, 14, 9); ctx.fillStyle = '#c99a5b'; ctx.fillRect(X + 2, Y + 2, 12, 7); ctx.fillStyle = '#7a4b2a'; ctx.fillRect(X + 4, Y + 4, 8, 1); ctx.fillRect(X + 4, Y + 6, 6, 1); return;
+    case 'board': ctx.fillStyle = '#6b4a2b'; ctx.fillRect(X + 2, Y + 4, 2, 12); ctx.fillRect(X + 12, Y + 4, 2, 12); ctx.fillStyle = OUT; ctx.fillRect(X, Y - 2, 16, 12); ctx.fillStyle = '#a7774a'; ctx.fillRect(X + 1, Y - 1, 14, 10);
+      ctx.fillStyle = '#fbf3e4'; ctx.fillRect(X + 3, Y, 5, 7); ctx.fillStyle = '#ffe08a'; ctx.fillRect(X + 9, Y + 1, 4, 4); ctx.fillStyle = '#d0693f'; ctx.fillRect(X + 5, Y, 1, 1); return;
+    case 'statue': ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.fillRect(X + 3, Y + 28, 28, 4); ctx.fillStyle = OUT; ctx.fillRect(X + 4, Y + 16, 24, 14); ctx.fillStyle = '#d9d2c3'; ctx.fillRect(X + 5, Y + 17, 22, 12); ctx.fillStyle = '#b8af9d'; ctx.fillRect(X + 5, Y + 25, 22, 4);
+      ctx.fillStyle = '#c99318'; ctx.fillRect(X + 9, Y - 4, 14, 10); ctx.fillRect(X + 13, Y + 6, 6, 6); ctx.fillRect(X + 10, Y + 12, 12, 4); ctx.fillRect(X + 5, Y - 2, 4, 6); ctx.fillRect(X + 23, Y - 2, 4, 6);
+      ctx.fillStyle = '#ffcc4d'; ctx.fillRect(X + 10, Y - 3, 12, 8); ctx.fillStyle = '#fff3b0'; ctx.fillRect(X + 11, Y - 2, 3, 5); return;
+    case 'car': ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.fillRect(X + 2, Y + 12, 28, 3); ctx.fillStyle = '#111'; ctx.fillRect(X + 3, Y + 8, 6, 6); ctx.fillRect(X + 22, Y + 8, 6, 6);
+      ctx.fillStyle = '#d8231b'; ctx.fillRect(X + 1, Y + 7, 30, 4); ctx.fillRect(X + 10, Y + 4, 12, 4); ctx.fillRect(X, Y + 3, 3, 6); ctx.fillStyle = '#ffcc4d'; ctx.fillRect(X + 13, Y + 3, 5, 2); ctx.fillStyle = '#fff'; ctx.fillRect(X + 24, Y + 8, 7, 1); return;
+    case 'boat': { const bob = RM ? 0 : Math.round(Math.sin(time * 2)); const Yb = Y + bob;
+      ctx.fillStyle = '#7a4b2a'; ctx.fillRect(X + 2, Yb + 4, 28, 8); ctx.fillRect(X, Yb + 2, 32, 3); ctx.fillStyle = '#a8743f'; ctx.fillRect(X + 3, Yb + 5, 26, 3);
+      ctx.fillStyle = '#6b4a2b'; ctx.fillRect(X + 15, Yb - 16, 2, 20); ctx.fillStyle = '#fbf3e4'; ctx.fillRect(X + 17, Yb - 15, 10, 12); ctx.fillStyle = '#1f7a8c'; ctx.fillRect(X + 19, Yb - 12, 6, 3);
+      ctx.fillStyle = S.night ? '#ffe28a' : '#caa25a'; ctx.fillRect(X + 5, Yb - 2, 3, 4); glows.push([X + 6, Yb, 16]); return; }
+    case 'cow': { const bob = o.fx || o.fy ? (Math.floor(time * 8) % 2) : 0; ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(o.px + 1, o.py + 13, 14, 3); sprite(COW, C_PAL, o.px + 1, o.py + 4 - bob, o.flip); return; }
+  }
+}
+function drawPlayer(time) {
+  const p = player, base = SPR[p.dir === 'left' || p.dir === 'right' ? 'side' : p.dir].slice();
+  const k = p.dir === 'left' || p.dir === 'right' ? 'side' : p.dir;
+  const stepping = p.moving && (Math.floor(p.t * 2 + p.steps) % 2 === 0);
+  if (stepping) { base[12] = STEP[k][0]; base[13] = STEP[k][1]; }
+  ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.fillRect(p.px + 3, p.py + 14, 10, 2);
+  sprite(base, P_PAL, Math.round(p.px) + 3, Math.round(p.py) + 1 - (stepping ? 1 : 0), p.dir === 'left');
+}
+function drawWater(time) {
+  for (let y = 26; y < MH; y++) for (let x = 0; x < MW; x++) {
+    if (G[y][x] !== 'w') continue;
+    const X = x * T, Y = y * T, ph = RM ? 0 : time * 1.6;
+    ctx.fillStyle = '#7cc4f0';
+    const o = Math.floor((hash(x, y, 1) * 16 + ph * 6) % 16);
+    ctx.fillRect(X + o, Y + 5 + (x % 3) * 3, 4, 1);
+    if (y === 26) { ctx.fillStyle = '#e8f6ff'; ctx.fillRect(X, Y + (Math.floor(ph + x * .7) % 2), T, 2); }
+  }
+}
+function render(time) {
+  glows = [];
+  ctx.drawImage(gc, 0, 0);
+  drawWater(time);
+  const list = objs.slice();
+  list.push({ t: 'player', y: player.py / T, h: 1 });
+  list.sort((a, b) => ((a.t === 'cow' ? a.py / T : a.y) + a.h) - ((b.t === 'cow' ? b.py / T : b.y) + b.h));
+  for (const o of list) o.t === 'player' ? drawPlayer(time) : drawObj(o, time);
+  if (S.night) {
+    ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = '#4b4f94'; ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.globalCompositeOperation = 'lighter';
+    for (const [x, y, r] of glows) { const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, 'rgba(255,190,90,.45)'); g.addColorStop(1, 'rgba(255,190,90,0)'); ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
+    ctx.globalCompositeOperation = 'source-over';
+  }
+}
+
+/* ============================================================ movement */
+const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+function facing() { const [dx, dy] = DIRS[player.dir]; const x = player.x + dx, y = player.y + dy; return inB(x, y) ? occ[y][x] : null; }
+function target() {
+  const o = facing(); if (!o || !o.act) return null;
+  if (o.t === 'bld') { const [dx, dy] = DIRS[player.dir]; return (player.x + dx === o.dx && player.y + dy === o.dy && player.dir === 'up') ? o : null; }
+  return o;
+}
+function tryStep(dir) {
+  player.dir = dir; player.flip = dir === 'left';
+  const [dx, dy] = DIRS[dir], nx = player.x + dx, ny = player.y + dy;
+  if (walk(nx, ny)) { player.moving = true; player.fx = player.x; player.fy = player.y; player.x = nx; player.y = ny; player.t = 0; return true; }
+  const o = inB(nx, ny) && occ[ny][nx];
+  if (o && o.t === 'bld' && nx === o.dx && ny === o.dy && dir === 'up') interact(o);
+  return false;
+}
+function bfs(goals) {
+  const key = (x, y) => y * MW + x, prev = new Map([[key(player.x, player.y), null]]), q = [[player.x, player.y]];
+  const isGoal = (x, y) => goals.some(g => g[0] === x && g[1] === y);
+  while (q.length) {
+    const [x, y] = q.shift();
+    if (isGoal(x, y)) { const path = []; let k = key(x, y); while (k !== key(player.x, player.y)) { path.unshift([k % MW, Math.floor(k / MW)]); k = prev.get(k); } return path; }
+    for (const [dx, dy] of Object.values(DIRS)) { const nx = x + dx, ny = y + dy; if (walk(nx, ny) && !prev.has(key(nx, ny))) { prev.set(key(nx, ny), key(x, y)); q.push([nx, ny]); } }
+  }
+  return null;
+}
+function goTo(o) {
+  let goals, face;
+  if (o.t === 'bld') { goals = [[o.dx, o.dy + 1]]; face = () => 'up'; }
+  else {
+    goals = []; for (let j = o.y - 1; j <= o.y + o.h; j++) for (let i = o.x - 1; i <= o.x + o.w; i++) {
+      const edge = (j === o.y - 1 || j === o.y + o.h) !== (i === o.x - 1 || i === o.x + o.w); if (edge && walk(i, j)) goals.push([i, j]); }
+    face = () => player.y < o.y ? 'down' : player.y >= o.y + o.h ? 'up' : player.x < o.x ? 'right' : 'left';
+  }
+  const at = goals.some(g => g[0] === player.x && g[1] === player.y);
+  if (at) { player.dir = face(); interact(o); return; }
+  const path = bfs(goals); if (path) { player.path = path; player.then = () => { player.dir = face(); interact(o); }; }
+}
+function update(dt) {
+  const p = player;
+  if (p.moving) {
+    p.t += dt * 7.5;
+    if (p.t >= 1) { p.t = 1; p.moving = false; p.steps++; }
+    p.px = (p.fx + (p.x - p.fx) * p.t) * T; p.py = (p.fy + (p.y - p.fy) * p.t) * T;
+  }
+  if (!p.moving && !S.busy) {
+    const held = S.held[S.held.length - 1];
+    if (held) { p.path = []; p.then = null; tryStep(held); }
+    else if (p.path.length) { const [nx, ny] = p.path.shift(); const d = nx > p.x ? 'right' : nx < p.x ? 'left' : ny > p.y ? 'down' : 'up'; if (!tryStep(d)) { p.path = []; p.then = null; } }
+    else if (p.then) { const f = p.then; p.then = null; f(); }
+  }
+  // cow wander
+  cow.wait -= dt;
+  if (cow.fx || cow.fy) { cow.mt += dt * 2.2; if (cow.mt >= 1) { cow.fx = cow.fy = 0; cow.px = cow.x * T; cow.py = cow.y * T; } else { cow.px = (cow.x - cow.fx * (1 - cow.mt)) * T; cow.py = (cow.y - cow.fy * (1 - cow.mt)) * T; } }
+  else if (cow.wait <= 0 && !S.dialog) {
+    cow.wait = 1.5 + Math.random() * 2.5;
+    const [dx, dy] = Object.values(DIRS)[Math.floor(Math.random() * 4)], nx = cow.x + dx, ny = cow.y + dy;
+    if (ny >= 13 && ny <= 25 && G[ny][nx] !== 'p' && walk(nx, ny) && !(nx === player.x && ny === player.y)) {
+      occ[cow.y][cow.x] = null; cow.x = nx; cow.y = ny; occ[ny][nx] = cow; cow.fx = dx; cow.fy = dy; cow.mt = 0; if (dx) cow.flip = dx < 0;
+    }
+  }
+}
+
+/* ============================================================ UI */
+const $ = id => document.getElementById(id);
+const promptEl = $('prompt'), dialogEl = $('dialog'), panel = $('panel'), hint = $('hint');
+function updatePrompt() {
+  const o = !S.busy && !player.moving && target();
+  if (o) { promptEl.textContent = `▶ ${o.act} · ${o.name}`; promptEl.hidden = false; promptEl.onclick = () => interact(o); }
+  else promptEl.hidden = true;
+}
+function interact(o) {
+  if (S.busy) return;
+  if (o.t === 'bld') return openPage(o.id);
+  if (o.place) return openPage(o.place);
+  const [who, lines, after] = SIGNS[o.sign];
+  say(who, lines || [COW_LINES[Math.floor(Math.random() * COW_LINES.length)]], after);
+}
+function say(who, lines, after) {
+  S.busy = true; S.dialog = { lines, i: 0, n: 0, after }; $('dWho').textContent = who; dialogEl.hidden = false; hint.hidden = true;
+}
+function advance() {
+  const d = S.dialog; if (!d) return;
+  const full = d.lines[d.i];
+  if (d.n < full.length) { d.n = full.length; return; }
+  d.i++; d.n = 0;
+  if (d.i >= d.lines.length) { dialogEl.hidden = true; S.dialog = null; S.busy = false; if (d.after === 'resume') window.open('resume.pdf', '_blank', 'noopener'); }
+}
+dialogEl.addEventListener('click', advance);
+
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function pageHTML(id) {
+  const P = PLACES[id];
+  let h = `<header class="ph" style="--c:${P.color}"><button class="btn back px" data-close>← Back to town</button><div class="kick">${esc(P.kicker || P.kind)}</div><h2>${esc(P.name)}</h2><p class="tag">${esc(P.tagline)}</p></header><div class="pb">`;
+  if (P.about) h += ABOUT_HTML + `<section><h3>Education</h3>${EDU_HTML}</section><section><h3>Around town</h3><p>Every house in Oggy Town is a project. The fenced compound up north is my IIT Ropar lab work; the Workshop holds my skills; the Post Office is how to reach me.</p></section>`;
+  for (const s of P.sections || []) {
+    h += `<section><h3>${esc(s.h)}</h3>`;
+    if (s.text) h += `<p>${esc(s.text)}</p>`;
+    if (s.list) h += `<ul>${s.list.map(l => `<li>${esc(l)}</li>`).join('')}</ul>`;
+    if (s.chips) h += `<div class="chips">${s.chips.map(c => `<span>${esc(c)}</span>`).join('')}</div>`;
+    if (s.html) h += s.html;
+    h += `</section>`;
+  }
+  const links = P.links || (P.about ? [['Resume (PDF)', 'resume.pdf'], ['GitHub', 'https://github.com/AkshayOggisetty'], ['LinkedIn', 'https://www.linkedin.com/in/akshayoggisetty']] : []);
+  if (links.length) h += `<div class="links">${links.map(([l, u]) => `<a href="${u}"${u.startsWith('mailto') ? '' : ' target="_blank" rel="noopener"'}>${esc(l)} ↗</a>`).join('')}</div>`;
+  return h + `</div>`;
+}
+
+/* wipe: blocky dissolve */
+const wc = $('wipe'), wx = wc.getContext('2d'); wc.width = 48; wc.height = 30;
+const cells = []; for (let y = 0; y < 30; y++) for (let x = 0; x < 48; x++) cells.push([x, y, hash(x, y, 42)]);
+cells.sort((a, b) => a[2] - b[2]);
+function wipe(mid) {
+  if (RM) { mid(); return; }
+  S.busy = true; const D = 260; let t0 = null, done = false;
+  requestAnimationFrame(function f(now) {
+    if (t0 === null) t0 = now;
+    const k = (now - t0) / D;
+    wx.clearRect(0, 0, 48, 30); wx.fillStyle = '#17142b';
+    const n = k < 1 ? Math.floor(cells.length * k) : k < 2 ? Math.floor(cells.length * (2 - k)) : 0;
+    if (k >= 1 && !done) { done = true; mid(); }
+    for (let i = 0; i < n; i++) wx.fillRect(cells[i][0], cells[i][1], 1, 1);
+    if (k < 2 && !ended) requestAnimationFrame(f); else end();
+  });
+  let ended = false;
+  const end = () => { if (ended) return; ended = true; if (!done) { done = true; mid(); } wx.clearRect(0, 0, 48, 30); S.busy = !!(S.page || S.dialog); };
+  setTimeout(() => { if (!done) { done = true; mid(); } }, D + 60);
+  setTimeout(end, 2 * D + 200);
+}
+function openPage(id) {
+  if (!PLACES[id] || S.page === id) return;
+  S.held = []; player.path = []; player.then = null;
+  if (location.hash !== '#/' + id) history.pushState(null, '', '#/' + id);
+  wipe(() => {
+    S.page = id; S.busy = true; panel.innerHTML = pageHTML(id); panel.hidden = false; panel.scrollTop = 0;
+    $('labels').style.visibility = 'hidden'; hint.hidden = true; promptEl.hidden = true;
+    const b = doorOf[id]; if (b && walk(b.dx, b.dy + 1)) { player.x = b.dx; player.y = b.dy + 1; player.px = player.x * T; player.py = player.y * T; player.moving = false; }
+    if (id === 'viatica') { player.x = 40; player.y = 28; player.px = 40 * T; player.py = 28 * T; }
+    player.dir = 'down';
+    panel.querySelector('[data-close]').focus({ preventScroll: true });
+  });
+}
+function closePage(fromHash) {
+  if (!S.page) return;
+  if (!fromHash) history.replaceState(null, '', '#/');
+  wipe(() => { S.page = null; panel.hidden = true; $('labels').style.visibility = ''; hint.hidden = false; cv.focus({ preventScroll: true }); });
+}
+panel.addEventListener('click', e => { if (e.target.closest('[data-close]')) closePage(); });
+function route() { const m = location.hash.match(/^#\/(\w+)/); if (m && PLACES[m[1]]) openPage(m[1]); else closePage(true); }
+addEventListener('popstate', route);
+
+/* labels + directory */
+const labels = $('labels');
+for (const o of objs) if (o.t === 'bld') { const s = document.createElement('span'); s.textContent = o.name; s.style.left = ((o.x + o.w / 2) * T / cv.width * 100) + '%'; s.style.top = ((o.y * T - (o.deco === 'tower' || o.deco === 'antenna' ? 20 : 2)) / cv.height * 100) + '%'; labels.appendChild(s); }
+{ const s = document.createElement('span'); s.textContent = 'IIT Ropar Lab'; s.style.left = (16.5 * T / cv.width * 100) + '%'; s.style.top = (9.95 * T / cv.height * 100) + '%'; s.style.background = '#ff8a4c'; s.style.color = '#17142b'; labels.appendChild(s); }
+{ const s = document.createElement('span'); s.textContent = 'Viatica Boat'; s.style.left = (41 * T / cv.width * 100) + '%'; s.style.top = (28.6 * T / cv.height * 100) + '%'; labels.appendChild(s); }
+
+const GROUPS = [['IIT Ropar lab', ['csfaq', 'curio', 'spandan']], ['Projects', ['kutumbai', 'nirnay', 'saarathi', 'moodsync', 'f1', 'airline', 'viatica', 'vastra', 'road', 'hotel', 'conceptly', 'crop']], ['Around town', ['home', 'skills', 'moss', 'post']]];
+const dir = $('dir');
+for (const [, ids] of GROUPS) for (const id of ids) {
+  const P = PLACES[id], ic = document.createElement('canvas'); ic.width = ic.height = 9;
+  const c = ic.getContext('2d'); c.fillStyle = P.color; c.fillRect(0, 0, 9, 9); icon(c, P.icon, 1, 1, '#fff');
+  const a = document.createElement('a'); a.href = '#/' + id;
+  a.innerHTML = `<img alt="" src="${ic.toDataURL()}"><span><b>${esc(P.name)}</b><small>${esc(P.kind)}</small></span>`;
+  a.addEventListener('click', e => { e.preventDefault(); $('stage').scrollIntoView({ behavior: RM ? 'auto' : 'smooth', block: 'center' }); openPage(id); });
+  dir.appendChild(a);
+}
+
+/* toggles */
+function setNight(v) { S.night = v; $('tNight').textContent = v ? '☀ Day' : '☾ Night'; $('clock').textContent = v ? '☾ NIGHT' : '☀ DAY'; }
+$('tNight').onclick = () => setNight(!S.night);
+$('tLabels').onclick = () => { S.labels = !S.labels; labels.classList.toggle('off', !S.labels); $('tLabels').textContent = 'Labels: ' + (S.labels ? 'on' : 'off'); };
+setNight(S.night);
+if (innerWidth < 640) { S.labels = false; labels.classList.add('off'); $('tLabels').textContent = 'Labels: off'; }
+
+/* input */
+const KEYS = { ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right' };
+addEventListener('keydown', e => {
+  if (e.target.closest && e.target.closest('input,textarea')) return;
+  if (S.page) { if (e.key === 'Escape') closePage(); return; }
+  const r = cv.getBoundingClientRect(), onScreen = r.top < innerHeight * .6 && r.bottom > innerHeight * .4;
+  const stageFocus = document.activeElement === cv || (document.activeElement === document.body && onScreen);
+  if (S.dialog && ['Enter', ' ', 'KeyE', 'Escape'].some(k => e.key === k || e.code === k)) { e.preventDefault(); advance(); return; }
+  const d = KEYS[e.code];
+  if (d) { if (stageFocus || e.code.startsWith('Key')) { e.preventDefault(); if (!S.held.includes(d)) S.held.push(d); hint.hidden = true; } return; }
+  if ((e.key === 'Enter' || e.key === ' ' || e.code === 'KeyE') && stageFocus) { e.preventDefault(); const o = target(); if (o) interact(o); }
+});
+addEventListener('keyup', e => { const d = KEYS[e.code]; if (d) S.held = S.held.filter(k => k !== d); });
+addEventListener('blur', () => { S.held = []; });
+cv.addEventListener('click', e => {
+  cv.focus({ preventScroll: true });
+  if (S.dialog) { advance(); return; } if (S.busy) return;
+  const r = cv.getBoundingClientRect(), x = Math.floor((e.clientX - r.left) / r.width * MW), y = Math.floor((e.clientY - r.top) / r.height * MH);
+  if (!inB(x, y)) return;
+  const o = occ[y][x];
+  if (o && o.act) return goTo(o);
+  const path = bfs([[x, y]]); if (path) { player.path = path; player.then = null; }
+  hint.hidden = true;
+});
+cv.addEventListener('mousemove', e => {
+  const r = cv.getBoundingClientRect(), x = Math.floor((e.clientX - r.left) / r.width * MW), y = Math.floor((e.clientY - r.top) / r.height * MH);
+  const o = inB(x, y) && occ[y][x]; cv.style.cursor = o && o.act ? 'pointer' : 'crosshair';
+});
+document.querySelectorAll('[data-d]').forEach(b => {
+  const d = b.dataset.d, on = e => { e.preventDefault(); if (!S.held.includes(d)) S.held.push(d); }, off = () => { S.held = S.held.filter(k => k !== d); };
+  b.addEventListener('pointerdown', on); b.addEventListener('pointerup', off); b.addEventListener('pointerleave', off); b.addEventListener('pointercancel', off);
+});
+$('bA').onclick = () => { if (S.dialog) return advance(); const o = target(); if (o) interact(o); };
+$('bB').onclick = () => { if (S.page) closePage(); else if (S.dialog) advance(); };
+
+/* loop */
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (S.dialog) { const d = S.dialog; d.n = Math.min(d.lines[d.i].length, d.n + dt * 70); $('dText').textContent = d.lines[d.i].slice(0, Math.floor(d.n)); }
+  if (!S.page) { update(dt); render(now / 1000); updatePrompt(); }
+  requestAnimationFrame(frame);
+}
+(document.fonts ? document.fonts.ready : Promise.resolve()).then(() => { requestAnimationFrame(frame); route(); });
+</script>
+</body>
+</html>
