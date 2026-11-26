@@ -370,9 +370,10 @@ for (let x = 0; x < MW; x += 2) if (free(x, 0, 2, 2)) add({ t: 'tree', x, y: 0, 
 for (let y = 2; y < 24; y += 2) for (const x of [0, 46]) if (free(x, y, 2, 2)) add({ t: 'tree', x, y, w: 2, h: 2 });
 for (const [x, y] of [[21, 3], [21, 5], [14, 20], [20, 20], [20, 22], [43, 15], [43, 21], [32, 7], [29, 8], [6, 9]]) if (free(x, y, 2, 2)) add({ t: 'tree', x, y, w: 2, h: 2 });
 for (const [x, y] of [[8, 14], [14, 15], [32, 14], [38, 15], [8, 21], [31, 21], [38, 22], [25, 21], [44, 13]]) if (free(x, y, 1, 1)) add({ t: 'bush', x, y, w: 1, h: 1 });
-for (const x of [3, 15, 27, 35, 45]) if (free(x, 24, 1, 1, 's')) add({ t: 'palm', x, y: 24, w: 1, h: 1 });
+for (const x of [3, 15, 27, 37, 45]) if (free(x, 24, 1, 1, 's')) add({ t: 'palm', x, y: 24, w: 1, h: 1 });
 
 const doorOf = {}; objs.forEach(o => { if (o.t === 'bld') doorOf[o.id] = o; });
+const DOORSTEP = new Set(objs.filter(o => o.t === 'bld').map(o => (o.dy + 1) * MW + o.dx));
 
 /* ============================================================ ground cache */
 const gc = document.createElement('canvas'); gc.width = cv.width; gc.height = cv.height;
@@ -473,7 +474,7 @@ function drawBuilding(b, time) {
   ctx.fillStyle = OUT; ctx.fillRect(pxX - 1, pxY - 1, 13, 12); ctx.fillStyle = '#fbf3e4'; ctx.fillRect(pxX, pxY, 11, 10);
   icon(ctx, PLACES[b.id].icon, pxX + 2, pxY + 1, b.roof);
   const blink = Math.floor(time * 2) % 2;
-  if (b.deco === 'antenna') { ctx.fillStyle = OUT; ctx.fillRect(X + W - 12, Y - 14, 2, 18); ctx.fillRect(X + W - 16, Y - 8, 10, 1); ctx.fillRect(X + W - 15, Y - 4, 8, 1); ctx.fillStyle = blink ? '#ff4d4d' : '#7a1f1f'; ctx.fillRect(X + W - 13, Y - 17, 4, 3); if (blink) glows.push([X + W - 11, Y - 16, 8]); }
+  if (b.deco === 'antenna') { ctx.fillStyle = OUT; ctx.fillRect(X + W - 4, Y - 14, 2, 22); ctx.fillRect(X + W - 7, Y - 8, 8, 1); ctx.fillRect(X + W - 6, Y - 4, 6, 1); ctx.fillStyle = blink ? '#ff4d4d' : '#7a1f1f'; ctx.fillRect(X + W - 5, Y - 17, 4, 3); if (blink) glows.push([X + W - 3, Y - 16, 8]); }
   if (b.deco === 'chimney') { ctx.fillStyle = OUT; ctx.fillRect(X + W - 20, Y - 4, 8, 12); ctx.fillStyle = '#9a4b32'; ctx.fillRect(X + W - 19, Y - 3, 6, 11); if (!RM) for (let k = 0; k < 3; k++) { const p = (time * .6 + k / 3) % 1; ctx.fillStyle = `rgba(235,235,245,${.7 - p * .7})`; const s = 3 + p * 4; ctx.fillRect(X + W - 17 + Math.sin(p * 6 + k) * 3 - s / 2, Y - 6 - p * 22, s, s); } }
   if (b.deco === 'flag') { ctx.fillStyle = OUT; ctx.fillRect(X + W - 6, Y - 16, 2, 20); ctx.fillStyle = '#ffcc4d'; const f = RM ? 0 : Math.floor(time * 3) % 2; ctx.fillRect(X + W - 4, Y - 16 + f, 9, 6); ctx.fillStyle = '#e0703a'; ctx.fillRect(X + W - 1, Y - 14 + f, 3, 2); }
   if (b.deco === 'beacon') { ctx.fillStyle = OUT; ctx.fillRect(X + W / 2 - 6, Y - 4, 12, 5); ctx.fillStyle = blink ? '#ff4d4d' : '#3b6cff'; ctx.fillRect(X + W / 2 - 5, Y - 3, 5, 3); ctx.fillStyle = blink ? '#3b6cff' : '#ff4d4d'; ctx.fillRect(X + W / 2, Y - 3, 5, 3); }
@@ -613,9 +614,12 @@ function update(dt) {
   cow.wait -= dt;
   if (cow.fx || cow.fy) { cow.mt += dt * 2.2; if (cow.mt >= 1) { cow.fx = cow.fy = 0; cow.px = cow.x * T; cow.py = cow.y * T; } else { cow.px = (cow.x - cow.fx * (1 - cow.mt)) * T; cow.py = (cow.y - cow.fy * (1 - cow.mt)) * T; } }
   else if (cow.wait <= 0 && !S.dialog) {
-    cow.wait = 1.5 + Math.random() * 2.5;
-    const [dx, dy] = Object.values(DIRS)[Math.floor(Math.random() * 4)], nx = cow.x + dx, ny = cow.y + dy;
-    if (ny >= 13 && ny <= 25 && G[ny][nx] !== 'p' && walk(nx, ny) && !(nx === player.x && ny === player.y)) {
+    cow.wait = .8 + Math.random() * 1.6;
+    if (!cow.dir || Math.random() < .35) cow.dir = Object.values(DIRS)[Math.floor(Math.random() * 4)];
+    const [dx, dy] = cow.dir, nx = cow.x + dx, ny = cow.y + dy;
+    const blocked = !walk(nx, ny) || G[ny][nx] === 'd' || DOORSTEP.has(ny * MW + nx) || (nx === player.x && ny === player.y) || player.path.some(q => q[0] === nx && q[1] === ny);
+    if (blocked) cow.dir = null;
+    else {
       occ[cow.y][cow.x] = null; cow.x = nx; cow.y = ny; occ[ny][nx] = cow; cow.fx = dx; cow.fy = dy; cow.mt = 0; if (dx) cow.flip = dx < 0;
     }
   }
@@ -711,7 +715,7 @@ addEventListener('popstate', route);
 
 /* labels + directory */
 const labels = $('labels');
-for (const o of objs) if (o.t === 'bld') { const s = document.createElement('span'); s.textContent = o.name; s.style.left = ((o.x + o.w / 2) * T / cv.width * 100) + '%'; s.style.top = ((o.y * T - (o.deco === 'antenna' ? 20 : 2)) / cv.height * 100) + '%'; labels.appendChild(s); }
+for (const o of objs) if (o.t === 'bld') { const s = document.createElement('span'); s.textContent = o.name; s.style.left = ((o.x + o.w / 2) * T / cv.width * 100) + '%'; s.style.top = ((o.y * T - 2) / cv.height * 100) + '%'; labels.appendChild(s); }
 { const s = document.createElement('span'); s.textContent = 'IIT Ropar Lab'; s.style.left = (16.5 * T / cv.width * 100) + '%'; s.style.top = (9.95 * T / cv.height * 100) + '%'; s.style.background = '#ff8a4c'; s.style.color = '#17142b'; labels.appendChild(s); }
 { const s = document.createElement('span'); s.textContent = 'Viatica Boat'; s.style.left = (41 * T / cv.width * 100) + '%'; s.style.top = (28.6 * T / cv.height * 100) + '%'; labels.appendChild(s); }
 
