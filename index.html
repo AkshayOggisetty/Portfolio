@@ -423,7 +423,7 @@ function icon(c, name, ox, oy, col, s = 1) {
 
 /* ============================================================ state */
 const player = { x: 17, y: 17, px: 17 * T, py: 17 * T, dir: 'down', flip: false, moving: false, fx: 0, fy: 0, t: 0, steps: 0, path: [], then: null };
-const cow = add({ t: 'cow', x: 25, y: 22, w: 1, h: 1, act: 'TALK', sign: 'cow', name: 'Moona Lisa', px: 25 * T, py: 22 * T, fx: 0, fy: 0, mt: 1, flip: false, wait: 2 });
+const cow = add({ t: 'cow', x: 25, y: 22, w: 1, h: 1, act: 'TALK', sign: 'cow', name: 'Moona Lisa', px: 25 * T, py: 22 * T, fx: 0, fy: 0, mt: 1, flip: false, wait: 2, hold: 0, met: false });
 const S = { night: false, labels: true, dialog: null, page: null, busy: false, held: [] };
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const h0 = new Date().getHours(); S.night = h0 >= 19 || h0 < 6;
@@ -610,10 +610,15 @@ function update(dt) {
     else if (p.path.length) { const [nx, ny] = p.path.shift(); const d = nx > p.x ? 'right' : nx < p.x ? 'left' : ny > p.y ? 'down' : 'up'; if (!tryStep(d)) { p.path = []; p.then = null; } }
     else if (p.then) { const f = p.then; p.then = null; f(); }
   }
-  // cow wander
-  cow.wait -= dt;
+  // cow wander: she stops while you head her way, then lingers ~4.5s once you reach her or finish talking
+  cow.wait -= dt; cow.hold -= dt;
+  const near = (x, y) => Math.abs(x - cow.x) + Math.abs(y - cow.y) <= 1, end = player.path[player.path.length - 1];
+  const adj = near(player.x, player.y), coming = !adj && ((end && near(end[0], end[1])) || (p.moving && Math.abs(player.x - cow.x) + Math.abs(player.y - cow.y) <= 3));
+  if (S.dialog || coming) cow.hold = 4.5;
+  if (adj && !cow.met) cow.hold = 4.5;
+  cow.met = adj;
   if (cow.fx || cow.fy) { cow.mt += dt * 2.2; if (cow.mt >= 1) { cow.fx = cow.fy = 0; cow.px = cow.x * T; cow.py = cow.y * T; } else { cow.px = (cow.x - cow.fx * (1 - cow.mt)) * T; cow.py = (cow.y - cow.fy * (1 - cow.mt)) * T; } }
-  else if (cow.wait <= 0 && !S.dialog) {
+  else if (cow.wait <= 0 && cow.hold <= 0 && !S.dialog) {
     cow.wait = .8 + Math.random() * 1.6;
     if (!cow.dir || Math.random() < .35) cow.dir = Object.values(DIRS)[Math.floor(Math.random() * 4)];
     const [dx, dy] = cow.dir, nx = cow.x + dx, ny = cow.y + dy;
